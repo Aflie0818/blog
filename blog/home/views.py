@@ -48,3 +48,33 @@ class IndexView(View):
         }
 
         return render(request, 'index.html',context=context)
+
+class DetailView(View):
+
+    def get(self,request):
+        # detail/?id=xxx&page_num=xxx&page_size=xxx
+        #获取文章id
+        id=request.GET.get('id')
+
+        # 获取博客分类信息
+        categories = ArticleCategory.objects.all()
+        #根据文章id进行文章数据的查询
+        try:
+            article=Article.objects.get(id=id)
+        except Article.DoesNotExist:
+            return render(request,'404.html')
+        else:
+            article.total_views += 1
+            article.save()
+        # 获取热点数据
+        hot_articles = Article.objects.order_by('-total_views')[:9]
+
+        #组织模板数据
+        context = {
+            'categories':categories,
+            'category':article.category,
+            'article':article,
+            'hot_articles': hot_articles,
+        }
+
+        return render(request,'detail.html',context=context)
